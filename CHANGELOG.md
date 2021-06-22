@@ -21,3 +21,7 @@ Light version of Bitcoin.com's Bitbox library
 ## [0.0.4] - 2020-06-02
 
 - fixed signing mechanism, so it would better handle 31-byte private key
+
+## [0.0.5] - 2021-06-22
+
+- remove http
