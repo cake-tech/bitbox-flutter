@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'utils/rest_api.dart';
 
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'utils/network.dart';
@@ -49,104 +48,6 @@ class Address {
     '7': 30,
     'l': 31,
   };
-
-  /// Returns information about the given Bitcoin Cash address.
-  ///
-  /// See https://developer.bitcoin.com/bitbox/docs/util for details about returned format
-  static Future<Map<String, dynamic>> validateAddress(String address) async =>
-      await RestApi.sendGetRequest("util/validateAddress", address);
-
-  /// Returns details of the provided address or addresses
-  ///
-  /// * If [addresses] is [String], it will return [Map] with address details.
-  /// * If [addresses] is [List] of Strings and [returnAsMap] is true, it will return [Map] with cashAddress used as keys
-  /// and [Map] with address details in values.
-  /// * If [addresses] is [List] of Strings and [returnAsMap] is false, it will return [List] with address details sorted
-  /// in the same order as the addresses provided.
-  /// * Otherwise it will throw [FormatException]
-  ///
-  /// See https://developer.bitcoin.com/bitbox/docs/address#details for details about returned format. However
-  /// note, that processing from array to map is done on the library side
-  static Future<dynamic> details(addresses, [returnAsMap = false]) async =>
-      await _sendRequest("details", addresses, returnAsMap);
-
-  /// Returns list of unconfirmed transactions
-  ///
-  /// * If [addresses] is [String], it will return [Map] with unconfirmed transaction details.
-  /// * If [addresses] is [List] of Strings and [returnAsMap] is true, it will return [Map] with cashAddress used as keys
-  /// and [Map] objects with address details in values.
-  /// * If [addresses] is [List] of Strings and [returnAsMap] is false, it will return [List] with details sorted in the
-  /// same order as the input list of addresses.
-  /// * Otherwise it will throw [FormatException]
-  ///
-  /// See https://developer.bitcoin.com/bitbox/docs/address#unconfirmed for details about the returned format. However
-  /// note, that processing from array to map is done on the library side
-  static Future<dynamic> getUnconfirmed(addresses, [returnAsMap = false]) async {
-    final result = await _sendRequest("unconfirmed", addresses);
-
-    if (result is Map) {
-      return Utxo.convertMapListToUtxos(result["utxos"]);
-    } else if (result is List<Map>) {
-      final returnList = <Map>[];
-      final returnMap = <String, List>{};
-
-      result.forEach((addressUtxoMap) {
-        if (returnAsMap) {
-          returnMap[addressUtxoMap["cashAddr"]] = Utxo.convertMapListToUtxos(addressUtxoMap["utxos"]);
-        } else {
-          addressUtxoMap["utxos"] = Utxo.convertMapListToUtxos(addressUtxoMap["utxos"]);
-          returnList.add(addressUtxoMap);
-        }
-      });
-
-      return returnAsMap ? returnMap : returnList;
-    }
-  }
-
-  /// Returns [Utxo] or a [List] of Utxos for the address or addresses.
-  ///
-  /// * If [addresses] is [String], it will return a list of [Utxo]
-  /// * If [addresses] is [List] of Strings and [returnAsMap] is true, it will return [Map] where key is the cashAddr
-  /// and values are Lists of [Utxo]
-  /// * If [addresses] is [List] of Strings and [returnAsMap] is false, it will return [List] similar to
-  /// https://developer.bitcoin.com/bitbox/docs/address#utxo except, that utxo entries are converted to [Utxo] objects
-  /// * Otherwise it will throw [FormatException]
-  static Future<dynamic> utxo(addresses, [returnAsMap = false]) async {
-    // don't reuse _sendRequests's returnAsMap parameter here because we need to iterate through the list anyway
-    final result = await _sendRequest("utxo", addresses);
-
-    if (result is Map) {
-      return Utxo.convertMapListToUtxos(result["utxos"]);
-    } else if (result is List) {
-      final returnList = <Map>[];
-      final returnMap = <String, List>{};
-
-      result.forEach((addressUtxoMap) {
-        if (returnAsMap) {
-          returnMap[addressUtxoMap["cashAddress"]] = Utxo.convertMapListToUtxos(addressUtxoMap["utxos"]);
-        } else {
-          addressUtxoMap["utxos"] = Utxo.convertMapListToUtxos(addressUtxoMap["utxos"]);
-          returnList.add(addressUtxoMap);
-        }
-      });
-
-      return returnAsMap ? returnMap : returnList;
-    } else {
-      throw FormatException("Invalid format returned: $result");
-    }
-  }
-
-  /// Returns details of all transactions of this address
-  ///
-  /// Returns
-  /// * [Map] if [addresses] is [String] with a signle address
-  /// * [List] if [addresses] is [List] of addresses and [returnAsMap] is false
-  /// * [Map] with address details with cashAddress as key
-  ///
-  /// See https://developer.bitcoin.com/bitbox/docs/address#transactions for format details.
-  /// Note, that conversion from List to Map when [returnAsMap] is true takes place in this library
-  static Future<dynamic> transactions(addresses, [returnAsMap = false]) async =>
-    await _sendRequest("transactions", addresses, returnAsMap);
 
   /// Converts legacy address to cash address
   static String toCashAddress(String legacyAddress,
@@ -218,23 +119,6 @@ class Address {
     final checksumData = prefixData + payloadData + Uint8List(8);
     final payload = payloadData + _checksumToUint5Array(_polymod(checksumData));
     return "$prefix:" + _base32Encode(payload);
-  }
-
-  /// Helper method for sending generic requests to Bitbox API. Accepts [String] or [List] of Strings and optionally
-  /// converts the List returned by Bitbox into [Map], which uses cashAddress as a key
-  static Future<dynamic> _sendRequest(String path, dynamic addresses,
-      [bool returnAsMap = false]) async {
-    assert(addresses is String || addresses is List<String>);
-
-    if (addresses is String) {
-      return await RestApi.sendGetRequest("address/$path", addresses) as Map;
-    } else if (addresses is List<String>) {
-      return await RestApi.sendPostRequest(
-          "address/$path", "addresses", addresses,
-          returnKey: returnAsMap ? "cashAddress" : null);
-    } else {
-      throw TypeError();
-    }
   }
 
   /// Derives an array from the given prefix to be used in the computation of the address' checksum.
