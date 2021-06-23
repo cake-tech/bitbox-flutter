@@ -25,3 +25,7 @@ Light version of Bitcoin.com's Bitbox library
 ## [0.0.5] - 2021-06-22
 
 - remove http
+
+## [0.0.6] - 2021-06-23
+
+- fix transaction
