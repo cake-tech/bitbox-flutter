@@ -37,8 +37,8 @@ class TransactionBuilder {
   /// Creates a builder from pre-built transaction
   factory TransactionBuilder.fromTransaction(Transaction transaction, [Network network]) {
     final txb = new TransactionBuilder(network: network);
+
     // Copy transaction fields
-    txb.setVersion(transaction.version);
     txb.setLockTime(transaction.locktime);
 
     // Copy outputs (done first to avoid signature invalidation)
@@ -374,7 +374,7 @@ class TransactionBuilder {
       //TODO: implement other script types too
       throw ArgumentError("Unsupport script!");
     }
-    
+
     final scriptChunks = bscript.decompile(script);
 
     // does our hash160(pubKey) match the output scripts?
