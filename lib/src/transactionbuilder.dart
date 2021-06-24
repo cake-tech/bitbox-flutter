@@ -49,7 +49,12 @@ class TransactionBuilder {
     // Copy inputs
     transaction.inputs.forEach((txIn) {
       txb._addInputUnsafe(txIn.hash, txIn.index,
-        new Input(sequence: txIn.sequence, script: txIn.script));
+        new Input(
+            sequence: txIn.sequence,
+            script: txIn.script,
+            witness: txIn.witness,
+            value: txIn.value,
+        ));
     });
 
     return txb;
