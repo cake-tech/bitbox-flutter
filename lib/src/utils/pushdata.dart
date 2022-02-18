@@ -2,15 +2,15 @@ import 'dart:typed_data';
 import '../utils/opcodes.dart';
 
 class DecodedPushData {
-  int opcode;
-  int number;
-  int size;
+  int? opcode;
+  int? number;
+  int? size;
   DecodedPushData({this.opcode, this.number, this.size});
 }
 
 class EncodedPushData {
-  int size;
-  Uint8List buffer;
+  int? size;
+  Uint8List? buffer;
 
   EncodedPushData({this.size, this.buffer});
 }
@@ -40,7 +40,7 @@ EncodedPushData encode(Uint8List buffer, number, offset) {
   return new EncodedPushData(size: size, buffer: buffer);
 }
 
-DecodedPushData decode(Uint8List bf, int offset) {
+DecodedPushData? decode(Uint8List bf, int offset) {
   ByteBuffer buffer = bf.buffer;
   int opcode = buffer.asByteData().getUint8(offset);
   int number, size;

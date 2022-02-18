@@ -17,10 +17,10 @@ class Bip21 {
     String address = uri.substring(0, split == -1 ? null : split);
 
     if (uriOptions["amount"] != null) {
-      if (uriOptions["amount"].indexOf(",") != -1)
+      if (uriOptions["amount"]?.indexOf(",") != -1)
         throw ("Invalid amount: commas are invalid");
 
-      double amount = double.tryParse(uriOptions["amount"]);
+      double? amount = double.tryParse(uriOptions["amount"] ?? '');
       if (amount == null || amount.isNaN)
         throw ("Invalid amount: not a number");
       if (!amount.isFinite) throw ("Invalid amount: not finite");
@@ -54,10 +54,10 @@ class Bip21 {
         if (options['amount'] < 0) throw ("Invalid amount: not positive");
       }
 
-      Map<String, dynamic> uriOptions = Map.from(options);
+      Map<String, dynamic>? uriOptions = Map.from(options);
       uriOptions.removeWhere((key, value) => value == null);
       uriOptions.forEach((key, value) {
-        uriOptions[key] = value.toString();
+        uriOptions?[key] = value.toString();
       });
 
       if (uriOptions.isEmpty) uriOptions = null;

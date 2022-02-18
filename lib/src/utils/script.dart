@@ -13,12 +13,12 @@ const OP_INT_BASE = Opcodes.OP_RESERVED;
 final zero = Uint8List.fromList([0]);
 
 Uint8List compile(List<dynamic> chunks) {
-  final bufferSize = chunks.fold(0, (acc, chunk) {
+  final int bufferSize = chunks.fold(0, (acc, chunk) {
     if (chunk is int) return acc + 1;
     if (chunk.length == 1 && asMinimalOP(chunk) != null) {
       return acc + 1;
     }
-    return acc + pushData.encodingLength(chunk.length) + chunk.length;
+    return acc + pushData.encodingLength(chunk.length) + chunk.length as int;
   });
   var buffer = new Uint8List(bufferSize);
 
@@ -34,8 +34,8 @@ Uint8List compile(List<dynamic> chunks) {
         return null;
       }
       pushData.EncodedPushData epd = pushData.encode(buffer, chunk.length, offset);
-      offset += epd.size;
-      buffer = epd.buffer;
+      offset += epd.size as int;
+      buffer = epd.buffer!;
       buffer.setRange(offset, offset + chunk.length, chunk);
       offset += chunk.length;
       // opcode
@@ -49,7 +49,7 @@ Uint8List compile(List<dynamic> chunks) {
   return buffer;
 }
 
-List<dynamic> decompile(Uint8List buffer) {
+List<dynamic>? decompile(Uint8List buffer) {
   List<dynamic> chunks = [];
   var i = 0;
 
@@ -62,13 +62,13 @@ List<dynamic> decompile(Uint8List buffer) {
 
       // did reading a pushDataInt fail?
       if (d == null) return null;
-      i += d.size;
+      i += d.size as int;
 
       // attempt to read too much data?
-      if (i + d.number > buffer.length) return null;
+      if (i + (d.number as int) > buffer.length) return null;
 
-      final data = buffer.sublist(i, i + d.number);
-      i += d.number;
+      final data = buffer.sublist(i, i + (d.number as int));
+      i += (d.number as int);
 
       // decompile minimally
       final op = asMinimalOP(data);
@@ -111,7 +111,7 @@ String toASM (List<dynamic> c) {
   }).join(' ');
 }*/
 
-int asMinimalOP (Uint8List buffer) {
+int? asMinimalOP (Uint8List buffer) {
   if (buffer.length == 0) return Opcodes.OP_0;
   if (buffer.length != 1) return null;
   if (buffer[0] >= 1 && buffer[0] <= 16) return OP_INT_BASE + buffer[0];
@@ -154,8 +154,8 @@ bool bip66check (buffer) {
 }
 
 Uint8List bip66encode(r, s) {
-  var lenR = r.length;
-  var lenS = s.length;
+  int lenR = r.length;
+  int lenS = s.length;
   if (lenR == 0) throw new ArgumentError('R length is zero');
   if (lenS == 0) throw new ArgumentError('S length is zero');
   if (lenR > 33) throw new ArgumentError('R length is too long');

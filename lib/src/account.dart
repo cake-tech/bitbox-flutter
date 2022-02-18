@@ -4,9 +4,9 @@ import 'hdnode.dart';
 class Account {
   final HDNode accountNode;
 
-  int currentChild = 0;
+  int currentChild;
 
-  Account(this.accountNode, [this.currentChild]);
+  Account(this.accountNode, [this.currentChild = 0]);
 
   /// Returns address at the current position
   String getCurrentAddress([bool legacyFormat = true]) {

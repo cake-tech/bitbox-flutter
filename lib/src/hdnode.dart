@@ -57,7 +57,7 @@ class HDNode {
 
     final key = utf8.encode('Bitcoin seed');
 
-    final I = hmacSHA512(key, seed);
+    final I = hmacSHA512(key as Uint8List, seed);
 
     final keyPair = ECPair(I.sublist(0, 32), null, network: network);
 

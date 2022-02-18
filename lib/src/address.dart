@@ -234,7 +234,7 @@ class Address {
       throw FormatException("Invalid Address Format: $address");
     }
 
-    String exception;
+    late String exception;
     // try to decode the address with either one or all three possible prefixes
     for (int i = 0; i < prefixes.length; i++) {
       final payload = _base32Decode(address);
@@ -355,7 +355,7 @@ class Address {
       final value = string[i];
       if (!_CHARSET_INVERSE_INDEX.containsKey(value))
         throw FormatException("Invalid character '$value'");
-      data[i] = _CHARSET_INVERSE_INDEX[string[i]];
+      data[i] = _CHARSET_INVERSE_INDEX[string[i]]!;
     }
 
     return data;
