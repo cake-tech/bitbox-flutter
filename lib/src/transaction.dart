@@ -240,7 +240,7 @@ class Transaction {
   }
 
   Uint8List toBuffer([Uint8List? buffer, int? initialOffset]) {
-    return this._toBuffer(buffer!, initialOffset);
+    return this._toBuffer(buffer, initialOffset);
   }
 
   String toHex() {
