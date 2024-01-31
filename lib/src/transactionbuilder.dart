@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:convert';
 import 'package:hex/hex.dart';
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'address.dart';
@@ -20,6 +21,7 @@ class TransactionBuilder {
   static const SIGHASH_SINGLE = 0x03;
   static const SIGHASH_ANYONECANPAY = 0x80;
   static const SIGHASH_BITCOINCASHBIP143 = 0x40;
+  static const MAX_OP_RETURN_SIZE = 80;
 
   final Network _network;
   final int _maximumFeeRate;
@@ -145,6 +147,25 @@ class TransactionBuilder {
     }
 
     return _tx.addOutput(scriptPubKey, value);
+  }
+
+  int addOutputData(dynamic data) {
+    var scriptPubKey;
+    if (data is String) {
+      if (data.length <= MAX_OP_RETURN_SIZE) {
+        scriptPubKey = bscript.compile([Opcodes.OP_RETURN, utf8.encode(data)]);
+      } else {
+        throw new ArgumentError('Too much data embedded, max OP_RETURN size is '+MAX_OP_RETURN_SIZE.toString());
+      }
+    } else if (data is Uint8List) {
+      scriptPubKey = data;
+    } else {
+      throw new ArgumentError('Invalid data');
+    }
+    if (!_canModifyOutputs()) {
+      throw new ArgumentError('No, this would invalidate signatures');
+    }
+    return _tx.addOutput(scriptPubKey, 0);
   }
 
   /// Calculates byte count of this transaction. If [addChangeOutput] is true, it will arbitrarily add one output to
